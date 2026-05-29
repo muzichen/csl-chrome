@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>中超赛程</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="header">
+    <div class="logo">
+      <span class="logo-icon">⚽</span>
+      <span class="logo-text">中超联赛</span>
+    </div>
+    <span class="data-source">数据来自 ESPN</span>
+  </div>
+
+  <div id="main">
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="schedule">赛程</button>
+      <button class="tab-btn" data-tab="results">战绩</button>
+      <button class="tab-btn" data-tab="standings">积分榜</button>
+    </div>
+    <div id="content" class="content"></div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
