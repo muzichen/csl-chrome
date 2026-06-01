@@ -10,12 +10,12 @@ const TEAM_CN = {
   'Chengdu Rongcheng':       '成都蓉城',
   'Chongqing Tonglianglong': '重庆铜梁龙',
   'Dalian Yingbo':           '大连英博',
-  'Henan Songshan Longmen':  '河南嵩山龙门',
+  'Henan Songshan Longmen':  '河南俱乐部',
   'Liaoning Tieren':         '辽宁铁人',
   'Qingdao Hainiu':          '青岛海牛',
   'Qingdao West Coast':      '青岛西海岸',
   'Shandong Taishan':        '山东泰山',
-  'Shanghai Port':           '上海港',
+  'Shanghai Port':           '上海海港',
   'Shanghai Shenhua':        '上海申花',
   'Shenzhen Xinpengcheng':   '深圳新鹏城',
   'Tianjin Jinmen Tiger':    '天津津门虎',
@@ -26,6 +26,28 @@ const TEAM_CN = {
 
 function cn(name) {
   return TEAM_CN[name] || name;
+}
+
+function logoImg(teamId, name) {
+  const cnName = cn(name);
+  if (!teamId) {
+    return `<span class="team-logo team-logo-fallback">⚽</span>`;
+  }
+  const url = `https://a.espncdn.com/i/teamlogos/soccer/500/${teamId}.png`;
+  return `<img class="team-logo" src="${url}" alt="${cnName}">`;
+}
+
+function bindLogoFallbacks(root) {
+  root.querySelectorAll('img.team-logo').forEach(img => {
+    const swap = () => {
+      const span = document.createElement('span');
+      span.className = 'team-logo team-logo-fallback';
+      span.textContent = '⚽';
+      img.replaceWith(span);
+    };
+    img.addEventListener('error', swap);
+    if (img.complete && img.naturalWidth === 0) swap();
+  });
 }
 
 function storageGet(key) {
@@ -75,6 +97,8 @@ function parseEvent(e) {
     date: e.date,
     homeTeam: home.team.displayName,
     awayTeam: away.team.displayName,
+    homeId: home.team.id,
+    awayId: away.team.id,
     homeScore: finished ? home.score : null,
     awayScore: finished ? away.score : null,
     finished,
@@ -98,9 +122,15 @@ function matchCard(ev) {
     <div class="match-card${ev.finished ? '' : ' upcoming'}">
       <div class="match-date">${formatBeijingTime(ev.date)}</div>
       <div class="match-teams">
-        <span class="team home">${cn(ev.homeTeam)}</span>
+        <span class="team home">
+          <span class="team-name">${cn(ev.homeTeam)}</span>
+          ${logoImg(ev.homeId, ev.homeTeam)}
+        </span>
         ${middle}
-        <span class="team away">${cn(ev.awayTeam)}</span>
+        <span class="team away">
+          ${logoImg(ev.awayId, ev.awayTeam)}
+          <span class="team-name">${cn(ev.awayTeam)}</span>
+        </span>
       </div>
     </div>
   `;
@@ -117,6 +147,7 @@ async function loadTab(tab) {
       content.innerHTML = events.length
         ? events.map(matchCard).join('')
         : '<p class="empty">暂无赛程数据</p>';
+      bindLogoFallbacks(content);
 
       // Scroll to first upcoming match
       requestAnimationFrame(() => {
@@ -131,6 +162,7 @@ async function loadTab(tab) {
       content.innerHTML = finished.length
         ? finished.map(matchCard).join('')
         : '<p class="empty">暂无战绩数据</p>';
+      bindLogoFallbacks(content);
 
     } else if (tab === 'standings') {
       const year = new Date().getFullYear();
@@ -154,7 +186,10 @@ async function loadTab(tab) {
         return `
           <tr>
             <td>${stat('rank')}</td>
-            <td class="team-name">${cn(e.team.displayName)}</td>
+            <td class="team-name">
+              ${logoImg(e.team.id, e.team.displayName)}
+              <span>${cn(e.team.displayName)}</span>
+            </td>
             <td>${stat('gamesPlayed')}</td>
             <td>${stat('wins')}</td>
             <td>${stat('ties')}</td>
@@ -171,6 +206,7 @@ async function loadTab(tab) {
           <tbody>${rows}</tbody>
         </table>
       `;
+      bindLogoFallbacks(content);
     }
   } catch (err) {
     content.innerHTML = `

@@ -165,14 +165,44 @@ body {
   flex: 1;
   font-size: 14px;
   color: #1a1a1a;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
 }
 
 .team.home {
+  justify-content: flex-end;
   text-align: right;
 }
 
 .team.away {
+  justify-content: flex-start;
   text-align: left;
+}
+
+.team .team-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.team-logo {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.team-logo-fallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  font-size: 14px;
+  background: #f0f0f0;
+  border-radius: 50%;
 }
 
 .vs {
@@ -229,6 +259,25 @@ body {
   text-align: left;
   padding-left: 8px;
   font-weight: 500;
+}
+
+.standings-table td.team-name {
+  white-space: nowrap;
+}
+
+.standings-table td.team-name .team-logo {
+  width: 18px;
+  height: 18px;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+
+.standings-table td.team-name .team-logo-fallback {
+  width: 18px;
+  height: 18px;
+  font-size: 11px;
+  vertical-align: middle;
+  margin-right: 6px;
 }
 
 .standings-table td.points {
