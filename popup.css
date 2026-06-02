@@ -13,7 +13,7 @@ body {
   background: #f5f5f5;
 }
 
-/* Header */
+/* ── Header ─────────────────────────────────────────────── */
 .header {
   display: flex;
   align-items: center;
@@ -23,28 +23,12 @@ body {
   color: white;
 }
 
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
+.logo { display: flex; align-items: center; gap: 8px; }
+.logo-icon { font-size: 18px; }
+.logo-text { font-size: 16px; font-weight: 600; letter-spacing: 1px; }
+.data-source { font-size: 11px; color: rgba(255,255,255,0.6); }
 
-.logo-icon {
-  font-size: 18px;
-}
-
-.logo-text {
-  font-size: 16px;
-  font-weight: 600;
-  letter-spacing: 1px;
-}
-
-.data-source {
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.6);
-}
-
-/* Tabs */
+/* ── Tabs ────────────────────────────────────────────────── */
 .tabs {
   display: flex;
   background: white;
@@ -63,18 +47,10 @@ body {
   transition: all 0.2s;
   font-family: inherit;
 }
+.tab-btn:hover { color: #D71A1E; }
+.tab-btn.active { color: #D71A1E; border-bottom-color: #D71A1E; font-weight: 600; }
 
-.tab-btn:hover {
-  color: #D71A1E;
-}
-
-.tab-btn.active {
-  color: #D71A1E;
-  border-bottom-color: #D71A1E;
-  font-weight: 600;
-}
-
-/* Content Area */
+/* ── Content ─────────────────────────────────────────────── */
 .content {
   max-height: 460px;
   overflow-y: auto;
@@ -82,79 +58,112 @@ body {
   padding: 8px;
 }
 
-/* Loading */
-.loading {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 48px;
-}
-
+/* ── Loading ─────────────────────────────────────────────── */
+.loading { display: flex; justify-content: center; align-items: center; padding: 48px; }
 .spinner {
-  width: 28px;
-  height: 28px;
+  width: 28px; height: 28px;
   border: 3px solid #e8e8e8;
   border-top-color: #D71A1E;
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
 }
+@keyframes spin { to { transform: rotate(360deg); } }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-/* Error */
-.error {
-  text-align: center;
-  padding: 32px 24px;
-}
-
-.error p {
-  color: #c0392b;
-  margin-bottom: 16px;
-  line-height: 1.5;
-}
-
+/* ── Error ───────────────────────────────────────────────── */
+.error { text-align: center; padding: 32px 24px; }
+.error p { color: #c0392b; margin-bottom: 16px; line-height: 1.5; }
 .error button, .retry-btn {
-  background: #D71A1E;
-  color: white;
-  border: none;
-  padding: 8px 20px;
-  border-radius: 6px;
+  background: #D71A1E; color: white; border: none;
+  padding: 8px 20px; border-radius: 6px;
+  font-size: 13px; cursor: pointer; font-family: inherit;
+}
+.error button:hover, .retry-btn:hover { background: #b81519; }
+
+/* ── Round groups ────────────────────────────────────────── */
+.round-group {
+  margin-bottom: 6px;
+}
+
+.round-summary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 10px;
+  background: white;
+  border-radius: 8px;
   font-size: 13px;
+  font-weight: 600;
+  color: #444;
   cursor: pointer;
-  font-family: inherit;
+  list-style: none;
+  user-select: none;
+  border: 1px solid #ebebeb;
+}
+.round-summary::-webkit-details-marker { display: none; }
+.round-summary::before {
+  content: '›';
+  display: inline-block;
+  transition: transform 0.2s;
+  color: #bbb;
+  font-size: 16px;
+  line-height: 1;
+}
+details[open] > .round-summary::before { transform: rotate(90deg); }
+
+.round-date { font-size: 11px; color: #aaa; font-weight: 400; }
+
+.round-live-dot {
+  display: inline-block;
+  width: 7px; height: 7px;
+  background: #D71A1E;
+  border-radius: 50%;
+  animation: pulse 1.2s ease-in-out infinite;
+  margin-left: 2px;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.4; transform: scale(0.7); }
 }
 
-.error button:hover, .retry-btn:hover {
-  background: #b81519;
-}
+.round-body { padding-top: 4px; }
 
-/* Match Card */
-.match-card.upcoming {
-  border-left: 3px solid #D71A1E;
-}
-
+/* ── Match Card ──────────────────────────────────────────── */
 .match-card {
   background: white;
   border-radius: 8px;
-  padding: 12px 14px;
-  margin-bottom: 6px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  padding: 10px 12px;
+  margin-bottom: 5px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  border-left: 3px solid transparent;
+  transition: border-color 0.15s;
 }
+.match-card.upcoming  { border-left-color: #D71A1E; }
+.match-card.fav-match { border-left-color: #f5a623; background: #fffdf5; }
+.match-card.live-match { border-left-color: #D71A1E; background: #fff8f8; }
 
-.match-date {
-  font-size: 12px;
-  color: #999;
-  margin-bottom: 8px;
+/* ── Match header ────────────────────────────────────────── */
+.match-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 7px;
 }
-
-.match-round {
-  font-size: 11px;
-  color: #bbb;
+.match-date { font-size: 12px; color: #999; }
+/* ── Live badge ──────────────────────────────────────────── */
+.live-badge {
+  display: inline-block;
   margin-left: 6px;
+  padding: 1px 6px;
+  background: #D71A1E;
+  color: white;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 600;
+  vertical-align: middle;
+  animation: pulse 1.2s ease-in-out infinite;
 }
 
+/* ── Teams row ───────────────────────────────────────────── */
 .match-teams {
   display: flex;
   align-items: center;
@@ -167,44 +176,32 @@ body {
   color: #1a1a1a;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   min-width: 0;
 }
+.team.home { justify-content: flex-end; text-align: right; }
+.team.away { justify-content: flex-start; text-align: left; }
 
-.team.home {
-  justify-content: flex-end;
-  text-align: right;
-}
+.team-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-.team.away {
-  justify-content: flex-start;
-  text-align: left;
-}
+.fav-inline-star { color: #f5a623; font-size: 13px; flex-shrink: 0; }
 
-.team .team-name {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
+/* ── Team logos ──────────────────────────────────────────── */
 .team-logo {
-  width: 22px;
-  height: 22px;
+  width: 22px; height: 22px;
   object-fit: contain;
   flex-shrink: 0;
 }
-
 .team-logo-fallback {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 22px;
-  font-size: 14px;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px;
+  font-size: 13px;
   background: #f0f0f0;
   border-radius: 50%;
+  flex-shrink: 0;
 }
 
+/* ── Score / vs ──────────────────────────────────────────── */
 .vs {
   flex: 0 0 40px;
   text-align: center;
@@ -212,7 +209,6 @@ body {
   color: #bbb;
   font-weight: 600;
 }
-
 .score {
   flex: 0 0 60px;
   text-align: center;
@@ -220,97 +216,76 @@ body {
   font-weight: 700;
   color: #1a1a1a;
 }
+.live-score {
+  flex: 0 0 64px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+}
+.live-nums { font-size: 18px; font-weight: 700; color: #D71A1E; }
+.live-clock { font-size: 10px; color: #D71A1E; font-weight: 600; }
 
-/* Standings Table */
+/* ── Standings ───────────────────────────────────────────── */
 .standings-table {
   width: 100%;
   background: white;
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
   border-collapse: collapse;
 }
-
-.standings-table thead tr {
-  background: #D71A1E;
-  color: white;
-}
-
+.standings-table thead tr { background: #D71A1E; color: white; }
 .standings-table th {
-  padding: 8px 6px;
+  padding: 8px 4px;
   font-size: 12px;
   font-weight: 600;
   text-align: center;
 }
-
-.standings-table th:nth-child(2) {
-  text-align: left;
-  padding-left: 8px;
-}
-
+.standings-table th:nth-child(2) { text-align: left; padding-left: 6px; }
 .standings-table td {
-  padding: 9px 6px;
+  padding: 8px 4px;
   text-align: center;
   font-size: 13px;
   border-bottom: 1px solid #f0f0f0;
 }
-
-.standings-table td.team-name {
+.standings-table td.team-name-cell {
   text-align: left;
-  padding-left: 8px;
+  padding-left: 6px;
   font-weight: 500;
-}
-
-.standings-table td.team-name {
   white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 5px;
 }
+.standings-table td.points { font-weight: 700; color: #D71A1E; }
+.standings-table tbody tr:last-child td { border-bottom: none; }
+.standings-table tbody tr:hover { background: #fef9f9; }
+.standings-table tr.fav-row td { background: #fffdf5; }
+.standings-table tr.fav-row:hover td { background: #fff8ee; }
 
-.standings-table td.team-name .team-logo {
-  width: 18px;
-  height: 18px;
-  vertical-align: middle;
-  margin-right: 6px;
-}
+.standings-table .team-logo,
+.standings-table .team-logo-fallback { width: 18px; height: 18px; font-size: 11px; }
 
-.standings-table td.team-name .team-logo-fallback {
-  width: 18px;
-  height: 18px;
-  font-size: 11px;
-  vertical-align: middle;
-  margin-right: 6px;
+/* ── Favorite button ─────────────────────────────────────── */
+.fav-cell { width: 28px; padding: 0 !important; text-align: center !important; }
+.fav-btn {
+  background: none;
+  border: none;
+  font-size: 15px;
+  color: #ccc;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+  transition: color 0.15s, transform 0.1s;
 }
+.fav-btn:hover { color: #f5a623; transform: scale(1.2); }
+.fav-btn.active { color: #f5a623; }
 
-.standings-table td.points {
-  font-weight: 700;
-  color: #D71A1E;
-}
+/* ── Empty ───────────────────────────────────────────────── */
+.empty { text-align: center; color: #999; padding: 40px 16px; font-size: 14px; }
 
-.standings-table tbody tr:last-child td {
-  border-bottom: none;
-}
-
-.standings-table tbody tr:hover {
-  background: #fef9f9;
-}
-
-/* Empty state */
-.empty {
-  text-align: center;
-  color: #999;
-  padding: 40px 16px;
-  font-size: 14px;
-}
-
-/* Scrollbar */
-.content::-webkit-scrollbar {
-  width: 4px;
-}
-
-.content::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.content::-webkit-scrollbar-thumb {
-  background: #ddd;
-  border-radius: 2px;
-}
+/* ── Scrollbar ───────────────────────────────────────────── */
+.content::-webkit-scrollbar { width: 4px; }
+.content::-webkit-scrollbar-track { background: transparent; }
+.content::-webkit-scrollbar-thumb { background: #ddd; border-radius: 2px; }
