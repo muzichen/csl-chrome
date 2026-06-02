@@ -26,7 +26,38 @@ body {
 .logo { display: flex; align-items: center; gap: 8px; }
 .logo-icon { font-size: 18px; }
 .logo-text { font-size: 16px; font-weight: 600; letter-spacing: 1px; }
-.data-source { font-size: 11px; color: rgba(255,255,255,0.6); }
+.header-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.data-source,
+.data-status {
+  font-size: 11px;
+  color: rgba(255,255,255,0.72);
+  white-space: nowrap;
+}
+.data-status { color: rgba(255,255,255,0.88); }
+.refresh-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: 1px solid rgba(255,255,255,0.35);
+  border-radius: 50%;
+  background: rgba(255,255,255,0.12);
+  color: white;
+  cursor: pointer;
+  padding: 0;
+}
+.refresh-btn svg {
+  width: 13px;
+  height: 13px;
+}
+.refresh-btn:hover { background: rgba(255,255,255,0.2); }
+.refresh-btn:disabled { opacity: 0.65; cursor: default; }
+.refresh-btn.is-refreshing { animation: spin 0.7s linear infinite; }
 
 /* ── Tabs ────────────────────────────────────────────────── */
 .tabs {
@@ -127,6 +158,76 @@ details[open] > .round-summary::before { transform: rotate(90deg); }
 
 .round-body { padding-top: 4px; }
 
+/* ── My team summary ─────────────────────────────────────── */
+.my-team-card {
+  background: white;
+  border: 1px solid #ebebeb;
+  border-left: 3px solid #f5a623;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+.my-team-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.my-team-head strong {
+  display: block;
+  font-size: 15px;
+  color: #1a1a1a;
+}
+.my-team-kicker,
+.my-team-grid span:not(.form-dot),
+.my-team-form span:not(.form-dot) {
+  display: block;
+  font-size: 11px;
+  color: #999;
+  margin-bottom: 2px;
+}
+.rank-pill {
+  flex-shrink: 0;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: #fff4d6;
+  color: #9a6500;
+  font-size: 11px;
+  font-weight: 600;
+}
+.my-team-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
+}
+.my-team-grid p {
+  font-size: 12px;
+  color: #333;
+  line-height: 1.35;
+}
+.my-team-form {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 8px;
+}
+.my-team-form span { margin-bottom: 0; }
+.my-team-muted,
+.form-empty {
+  color: #aaa;
+}
+.my-team-live {
+  display: inline-block;
+  padding: 1px 5px;
+  margin-right: 2px;
+  border-radius: 8px;
+  background: #D71A1E;
+  color: white;
+  font-size: 10px;
+  font-weight: 600;
+}
 /* ── Match Card ──────────────────────────────────────────── */
 .match-card {
   background: white;
@@ -237,16 +338,16 @@ details[open] > .round-summary::before { transform: rotate(90deg); }
 }
 .standings-table thead tr { background: #D71A1E; color: white; }
 .standings-table th {
-  padding: 8px 4px;
-  font-size: 12px;
+  padding: 8px 3px;
+  font-size: 11px;
   font-weight: 600;
   text-align: center;
 }
 .standings-table th:nth-child(2) { text-align: left; padding-left: 6px; }
 .standings-table td {
-  padding: 8px 4px;
+  padding: 8px 3px;
   text-align: center;
-  font-size: 13px;
+  font-size: 12px;
   border-bottom: 1px solid #f0f0f0;
 }
 .standings-table td.team-name-cell {
@@ -258,14 +359,48 @@ details[open] > .round-summary::before { transform: rotate(90deg); }
   align-items: center;
   gap: 5px;
 }
+.standings-table td.team-name-cell span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.standings-table .rank-cell {
+  font-weight: 600;
+  color: #666;
+}
+.standings-table .record-cell {
+  font-variant-numeric: tabular-nums;
+  color: #555;
+}
+.standings-table .positive { color: #16833a; font-weight: 600; }
+.standings-table .negative { color: #c0392b; font-weight: 600; }
 .standings-table td.points { font-weight: 700; color: #D71A1E; }
 .standings-table tbody tr:last-child td { border-bottom: none; }
 .standings-table tbody tr:hover { background: #fef9f9; }
 .standings-table tr.fav-row td { background: #fffdf5; }
 .standings-table tr.fav-row:hover td { background: #fff8ee; }
+.standings-table tr.rank-top .rank-cell { color: #D71A1E; }
+.standings-table tr.rank-bottom .rank-cell { color: #999; }
 
 .standings-table .team-logo,
 .standings-table .team-logo-fallback { width: 18px; height: 18px; font-size: 11px; }
+.form-cell {
+  white-space: nowrap;
+}
+.form-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  margin: 0 1px;
+  border-radius: 50%;
+  color: white;
+  font-size: 8px;
+  font-weight: 700;
+}
+.form-w { background: #16833a; }
+.form-d { background: #9ca3af; }
+.form-l { background: #c0392b; }
 
 /* ── Favorite button ─────────────────────────────────────── */
 .fav-cell { width: 28px; padding: 0 !important; text-align: center !important; }

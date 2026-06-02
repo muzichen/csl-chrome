@@ -6,7 +6,9 @@ A Chrome extension for following the Chinese Super League (中超联赛). View t
 
 - **赛程 (Schedule)** — Full season fixture list, auto-scrolled to the next upcoming match
 - **战绩 (Results)** — Completed matches sorted by most recent
-- **积分榜 (Standings)** — League table with played, won, drawn, lost, and points
+- **积分榜 (Standings)** — League table with played, win-draw-loss record, goal difference, points, and recent form
+- **我的球队 (My Team)** — Favorite-team summary with next match, latest result, rank, points, and form
+- Manual refresh with visible cache/update timestamp
 - Team names displayed in Chinese (e.g. 上海申花, 山东泰山)
 - Results cached for 10 minutes to avoid repeated API calls
 
