@@ -68,14 +68,19 @@ function storageSet(items) {
   return new Promise(resolve => chrome.storage.local.set(items, resolve));
 }
 
+// Bump when the cached data shape changes; stale-version entries are refetched and overwritten
+const CACHE_VERSION = 2;
+
 async function getCached(key) {
   const r = await storageGet(key);
   const e = r[key];
-  if (e && Date.now() - e.ts < CACHE_TTL) return e;
+  if (e && e.v === CACHE_VERSION && Date.now() - e.ts < CACHE_TTL) return e;
   return null;
 }
 
-async function fetchWithCache(url, skipCache = false) {
+// transform: reduce the raw response to just what the UI needs BEFORE caching —
+// the raw season scoreboard is ~1.8MB while parsed events are ~50KB
+async function fetchWithCache(url, skipCache = false, transform = d => d) {
   const key = 'cache_' + url.replace(/[^a-z0-9]/gi, '_');
   if (!skipCache) {
     const cached = await getCached(key);
@@ -86,9 +91,9 @@ async function fetchWithCache(url, skipCache = false) {
   }
   const res = await fetch(url);
   if (!res.ok) throw new Error(`请求失败 (HTTP ${res.status})`);
-  const data = await res.json();
+  const data = transform(await res.json());
   const ts = Date.now();
-  await storageSet({ [key]: { data, ts } });
+  await storageSet({ [key]: { v: CACHE_VERSION, data, ts } });
   updateDataStatus(ts, false);
   return data;
 }
@@ -116,14 +121,14 @@ function setRefreshing(isRefreshing) {
 async function fetchSeasonEvents(skipCache = false) {
   const year = new Date().getFullYear();
   const url  = `${ESPN_SCOREBOARD}?dates=${year}0101-${year}1231&limit=300`;
-  const data = await fetchWithCache(url, skipCache);
-  return (data.events || []).map(parseEvent).filter(Boolean);
+  return fetchWithCache(url, skipCache,
+    data => (data.events || []).map(parseEvent).filter(Boolean));
 }
 
 async function fetchStandingsEntries(skipCache = false) {
   const year = new Date().getFullYear();
-  const data = await fetchWithCache(`${ESPN_STANDINGS}?season=${year}`, skipCache);
-  return data?.children?.[0]?.standings?.entries || [];
+  return fetchWithCache(`${ESPN_STANDINGS}?season=${year}`, skipCache,
+    data => data?.children?.[0]?.standings?.entries || []);
 }
 
 function parseEvent(e) {
@@ -165,6 +170,29 @@ function formatBeijingTime(utcStr) {
 function formatRoundLabel(utcStr) {
   const bj = new Date(new Date(utcStr).getTime() + 8 * 3600 * 1000);
   return `${bj.getUTCMonth() + 1}月${bj.getUTCDate()}日`;
+}
+
+// Day difference in Beijing time: 0 = today, 1 = tomorrow, -1 = yesterday
+function beijingDayDiff(utcStr) {
+  const DAY = 86400000;
+  const evDay  = Math.floor((new Date(utcStr).getTime() + 8 * 3600 * 1000) / DAY);
+  const nowDay = Math.floor((Date.now() + 8 * 3600 * 1000) / DAY);
+  return evDay - nowDay;
+}
+
+// "今天 19:35" / "明天 19:35" / "6月27日 19:35 · 3天后" / "昨天 20:00"
+function relativeTimeLabel(utcStr) {
+  const d = beijingDayDiff(utcStr);
+  const time = formatBeijingTime(utcStr);
+  const hhmm = time.split(' ')[1];
+  if (d === 0)  return `今天 ${hhmm}`;
+  if (d === 1)  return `明天 ${hhmm}`;
+  if (d === 2)  return `后天 ${hhmm}`;
+  if (d === -1) return `昨天 ${hhmm}`;
+  if (d === -2) return `前天 ${hhmm}`;
+  if (d > 2 && d <= 7)   return `${time} · ${d}天后`;
+  if (d < -2 && d >= -7) return `${time} · ${-d}天前`;
+  return time;
 }
 
 // CSL always has 16 teams → exactly 8 games per round.
@@ -245,9 +273,9 @@ function compactMatchLine(ev, teamId, type) {
     return `<span class="my-team-live">直播中</span> ${side} vs ${opponent} <strong>${ev.homeScore} - ${ev.awayScore}</strong>`;
   }
   if (type === 'next') {
-    return `${formatBeijingTime(ev.date)} ${side} vs ${opponent}`;
+    return `${relativeTimeLabel(ev.date)} ${side} vs ${opponent}`;
   }
-  return `${formatBeijingTime(ev.date)} ${side} vs ${opponent} <strong>${ev.homeScore} - ${ev.awayScore}</strong>`;
+  return `${relativeTimeLabel(ev.date)} ${side} vs ${opponent} <strong>${ev.homeScore} - ${ev.awayScore}</strong>`;
 }
 
 function favoriteSummary(events, entries = []) {
@@ -294,7 +322,7 @@ function matchCard(ev) {
       ? `<span class="score">${ev.homeScore} - ${ev.awayScore}</span>`
       : `<span class="vs">vs</span>`;
 
-  const classes = ['match-card'];
+  const classes = ['match-card', 'clickable'];
   if (!ev.finished && !ev.live) classes.push('upcoming');
   if (isFav)   classes.push('fav-match');
   if (ev.live) classes.push('live-match');
@@ -304,7 +332,7 @@ function matchCard(ev) {
   const liveTag      = ev.live ? '<span class="live-badge">直播中</span>' : '';
 
   return `
-    <div class="${classes.join(' ')}" data-id="${ev.id}">
+    <div class="${classes.join(' ')}" data-id="${ev.id}" title="在 ESPN 查看比赛详情">
       <div class="match-header">
         <span class="match-date">${formatBeijingTime(ev.date)}${liveTag}</span>
       </div>
@@ -323,7 +351,7 @@ function roundSection(roundNum, events, isOpen) {
   const liveCount  = events.filter(e => e.live).length;
   const liveTag    = liveCount ? `<span class="round-live-dot"></span>` : '';
   return `
-    <details class="round-group" ${isOpen ? 'open' : ''}>
+    <details class="round-group" data-round="${roundNum}" ${isOpen ? 'open' : ''}>
       <summary class="round-summary">第 ${roundNum} 轮 <span class="round-date">${dateRange}</span>${liveTag}</summary>
       <div class="round-body">${events.map(matchCard).join('')}</div>
     </details>`;
@@ -370,12 +398,44 @@ function bindFavoriteButtons(root) {
   });
 }
 
+// ── Match detail links ────────────────────────────────────
+function bindMatchLinks(root) {
+  root.querySelectorAll('.match-card.clickable').forEach(card => {
+    card.addEventListener('click', () => {
+      chrome.tabs.create({ url: `https://www.espn.com/soccer/match/_/gameId/${card.dataset.id}` });
+    });
+  });
+}
+
+// ── View state (preserved across silent refreshes) ────────
+// Snapshot which rounds the user has open and where they scrolled,
+// so a live-refresh re-render doesn't reset their browsing position.
+function captureViewState(content) {
+  const rounds = {};
+  content.querySelectorAll('details.round-group[data-round]').forEach(d => {
+    rounds[d.dataset.round] = d.open;
+  });
+  return { rounds, scrollTop: content.scrollTop };
+}
+
+function restoreViewState(content, state) {
+  if (!state) return;
+  content.querySelectorAll('details.round-group[data-round]').forEach(d => {
+    const k = d.dataset.round;
+    if (k in state.rounds) d.open = state.rounds[k];
+  });
+  content.scrollTop = state.scrollTop;
+}
+
 // ── Tab rendering ─────────────────────────────────────────
 async function loadTab(tab, skipCache = false) {
   const seq = ++loadSeq;
   currentTab = tab;
   const content = document.getElementById('content');
   setRefreshing(true);
+  // skipCache means a refresh of already-rendered content: keep it on
+  // screen during the fetch and restore the user's view state afterwards
+  const viewState = skipCache ? captureViewState(content) : null;
   if (!skipCache) {
     content.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
   }
@@ -410,12 +470,16 @@ async function loadTab(tab, skipCache = false) {
         .map((r, i) => roundSection(scheduleRoundNums[i], r, i === active))
         .join('');
       bindLogoFallbacks(content);
+      bindMatchLinks(content);
+      restoreViewState(content, viewState);
 
-      // Scroll active round into view
-      requestAnimationFrame(() => {
-        const openRound = content.querySelector('details[open] .round-body .match-card.upcoming');
-        if (openRound) openRound.scrollIntoView({ block: 'start' });
-      });
+      // Scroll active round into view (initial load only, not refreshes)
+      if (!viewState) {
+        requestAnimationFrame(() => {
+          const openRound = content.querySelector('details[open] .round-body .match-card.upcoming');
+          if (openRound) openRound.scrollIntoView({ block: 'start' });
+        });
+      }
 
     } else if (tab === 'results') {
       const events   = await fetchSeasonEvents(skipCache);
@@ -439,6 +503,8 @@ async function loadTab(tab, skipCache = false) {
         .map((r, i) => roundSection(finishedRounds.length - i, r, i === 0))
         .join('');
       bindLogoFallbacks(content);
+      bindMatchLinks(content);
+      restoreViewState(content, viewState);
 
     } else if (tab === 'standings') {
       stopLiveTimer();
@@ -457,12 +523,16 @@ async function loadTab(tab, skipCache = false) {
         const gd       = statVal(e, 'pointDifferential');
         const rankClass = rank <= 3 ? 'rank-top' : rank >= entries.length - 1 ? 'rank-bottom' : '';
         const gdClass   = gd > 0 ? 'positive' : gd < 0 ? 'negative' : '';
+        // Zone strips: ACL spots (top 3) blue, relegation spots (bottom 2) red
+        const zoneClass = rank <= 3 ? 'zone-acl' : rank >= entries.length - 1 ? 'zone-rel' : '';
         return `
-          <tr class="${isFav ? 'fav-row' : ''} ${rankClass}">
+          <tr class="${isFav ? 'fav-row' : ''} ${rankClass} ${zoneClass}">
             <td class="rank-cell">${rank}</td>
             <td class="team-name-cell">
-              ${logoImg(tid, e.team.displayName)}
-              <span>${escapeHtml(cn(e.team.displayName))}</span>
+              <div class="team-cell-inner">
+                ${logoImg(tid, e.team.displayName)}
+                <span>${escapeHtml(cn(e.team.displayName))}</span>
+              </div>
             </td>
             <td>${statVal(e, 'gamesPlayed')}</td>
             <td class="record-cell">${statVal(e, 'wins')}-${statVal(e, 'ties')}-${statVal(e, 'losses')}</td>
@@ -478,12 +548,24 @@ async function loadTab(tab, skipCache = false) {
             <tr><th>#</th><th>球队</th><th>场</th><th>胜平负</th><th>净胜</th><th>积分</th><th>近况</th><th></th></tr>
           </thead>
           <tbody>${rows}</tbody>
-        </table>`;
+        </table>
+        <div class="zone-legend">
+          <span><i class="legend-strip acl"></i>亚冠资格</span>
+          <span><i class="legend-strip rel"></i>降级区</span>
+        </div>`;
       bindLogoFallbacks(content);
       bindFavoriteButtons(content);
+      restoreViewState(content, viewState);
     }
   } catch (err) {
     if (seq !== loadSeq) return;
+    // A failed refresh of already-rendered content must not wipe it —
+    // keep what's on screen and surface the failure in the status line
+    if (skipCache && content.querySelector('.match-card, .standings-table, .my-team-card')) {
+      const status = document.getElementById('data-status');
+      if (status) status.textContent = '刷新失败';
+      return;
+    }
     content.innerHTML = `
       <div class="error">
         <p>${escapeHtml(err.message)}</p>

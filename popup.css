@@ -242,6 +242,13 @@ details[open] > .round-summary::before { transform: rotate(90deg); }
 .match-card.fav-match { border-left-color: #f5a623; background: #fffdf5; }
 .match-card.live-match { border-left-color: #D71A1E; background: #fff8f8; }
 
+.match-card.clickable { cursor: pointer; }
+.match-card.clickable:hover {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  transform: translateY(-1px);
+  transition: box-shadow 0.15s, transform 0.15s;
+}
+
 /* ── Match header ────────────────────────────────────────── */
 .match-header {
   display: flex;
@@ -354,12 +361,15 @@ details[open] > .round-summary::before { transform: rotate(90deg); }
   text-align: left;
   padding-left: 6px;
   font-weight: 500;
-  white-space: nowrap;
+}
+/* flex goes on an inner wrapper — a flex <td> breaks table row/border alignment */
+.standings-table .team-cell-inner {
   display: flex;
   align-items: center;
   gap: 5px;
+  white-space: nowrap;
 }
-.standings-table td.team-name-cell span {
+.standings-table .team-cell-inner span {
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -380,6 +390,27 @@ details[open] > .round-summary::before { transform: rotate(90deg); }
 .standings-table tr.fav-row:hover td { background: #fff8ee; }
 .standings-table tr.rank-top .rank-cell { color: #D71A1E; }
 .standings-table tr.rank-bottom .rank-cell { color: #999; }
+
+/* Zone strips on the rank column: ACL spots blue, relegation spots red */
+.standings-table tr.zone-acl td:first-child { box-shadow: inset 3px 0 0 #2563eb; }
+.standings-table tr.zone-rel td:first-child { box-shadow: inset 3px 0 0 #D71A1E; }
+
+.zone-legend {
+  display: flex;
+  gap: 14px;
+  padding: 8px 10px 4px;
+  font-size: 11px;
+  color: #888;
+}
+.zone-legend span { display: inline-flex; align-items: center; gap: 4px; }
+.legend-strip {
+  display: inline-block;
+  width: 3px;
+  height: 11px;
+  border-radius: 1px;
+}
+.legend-strip.acl { background: #2563eb; }
+.legend-strip.rel { background: #D71A1E; }
 
 .standings-table .team-logo,
 .standings-table .team-logo-fallback { width: 18px; height: 18px; font-size: 11px; }
